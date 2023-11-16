@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TIFF Image Viewer</title>
+  </head>
+  <body>
+    <canvas id="imageCanvas" width="800" height="600"></canvas>
+
+    <script src="https://cdn.jsdelivr.net/npm/geotiff"></script>
+    <script>
+      // Assuming your TIFF image URL
+
+      const imageUrl = "D:/leaflet/file.tif";
+
+      // Load the TIFF image from the URL
+      GeoTIFF.fromUrl(imageUrl)
+        .then((tiff) => {
+          // Get the first image from the TIFF file
+          console.log("enter 1");
+          return tiff.getImage();
+        })
+        .then((image) => {
+          // Read raster data from the image
+          console.log("enter 2");
+
+          return image.readRasters();
+        })
+        .then((rasters) => {
+          console.log("enter 3");
+
+          // Create a canvas element for rendering
+          const canvas = document.getElementById("imageCanvas");
+          const ctx = canvas.getContext("2d");
+
+          // Assuming a single-band image
+          const imageData = ctx.createImageData(canvas.width, canvas.height);
+          const data = rasters[0]; // Adjust this based on your image bands
+
+          // Copy raster data to the ImageData
+          for (let i = 0; i < data.length; i++) {
+            const value = data[i];
+            imageData.data[i * 4] = value; // Red channel
+            imageData.data[i * 4 + 1] = value; // Green channel
+            imageData.data[i * 4 + 2] = value; // Blue channel
+            imageData.data[i * 4 + 3] = 255; // Alpha channel (fully opaque)
+          }
+
+          // Put the ImageData onto the canvas
+          ctx.putImageData(imageData, 0, 0);
+        })
+        .catch((error) => {
+          console.error("Error loading TIFF image:", error);
+        });
+    </script>
+  </body>
+</html>

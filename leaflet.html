@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Leaflet Tutorial</title>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <style>
+      #map {
+        width: 100%;
+        height: 100vh;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+  </body>
+</html>
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+<script src="https://unpkg.com/geotiff@2.1.0/dist-browser/geotiff.js"></script>
+<script>
+  var map = L.map("map").setView([12.966953, 80.176905], 13);
+
+  var osm = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution:
+      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+  });
+  osm.addTo(map);
+
+  var imageUrl = "./file.tif";
+
+  // Use GeoTIFF library to load the TIFF image
+  GeoTIFF.fromUrl(imageUrl).then(function (tif) {
+    // Assume there is only one image in the TIFF file
+    return tif.getImage();
+  }).then(function (image) {
+    // Get the image data as a canvas
+    return image.readRasters();
+  }).then(function (data) {
+    // Convert the data to a PNG image
+    var canvas = document.createElement('canvas');
+    canvas.width = data.width;
+    canvas.height = data.height;
+    var ctx = canvas.getContext('2d');
+    var imageData = ctx.createImageData(data.width, data.height);
+    imageData.data.set(data);
+    ctx.putImageData(imageData, 0, 0);
+
+    // Create a Leaflet image overlay with the PNG image
+    var imageBounds = [
+      [12.966953, 80.176905],
+      [12.969953, 80.179905],
+    ];
+    L.imageOverlay(canvas.toDataURL(), imageBounds).addTo(map);
+  });
+</script>
